@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <noscript>
+        <meta http-equiv="refresh" content="0;url=../张三-3年法外狂徒-简历.pdf">
+    </noscript>
+    <title>请稍后...</title>
+</head>
+
+<body>
+    <script>
+        function toDown(url, filename) {
+            let xhr = new XMLHttpRequest();
+            xhr.open("GET", url, true);
+            xhr.onreadystatechange = function (event) {
+                if (this.readyState != 4) {
+                    return;
+                }
+                var link = document.createElement('a');
+                link.download = filename;
+                link.style.display = 'none';
+                var blob = new Blob([this.response]);
+                link.href = URL.createObjectURL(blob);
+                document.body.appendChild(link);
+                link.click();
+            }
+            xhr.send();
+        };
+
+        toDown('../resume.pdf', '张三-3年法外狂徒-简历.pdf');
+    </script>
+</body>
+
+</html>

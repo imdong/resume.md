@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>张三-3年法外狂徒-简历</title>
+    <link rel="stylesheet" href="./style.css" />
+    <base target="_blank" />
+    <style>
+        .subtitle {
+            font-size: 16px;
+        }
+
+        .sub-info, .sub-down {
+            font-size: small;
+            font-weight: normal;
+            float: right;
+            margin-top: 18px;
+        }
+
+        .split-tag span+span {
+            margin-left: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="print-btn">
+        <a href="javascript:window.print();" target="_self">打印(Print)</a>
+    </div>
+
+    <div id="content" class="markdown-body">
+        <span class="loading">Loading...</span>
+    </div>
+
+    <template style="display: none;" id="tpl-page-number">
+        <p class="page_number ">本简历使用 Markdown 书写，使用 <a href="https://github.com/markedjs/marked">Marked.js</a> 渲染，托管于
+            <a href="https://github.com/imdong/resume">Github</a>，使用 MIT 协议开源。<span>{page}/{total}</span></p>
+    </template>
+
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script>
+        (function () {
+            // 出于安全考虑，可以使用 base64 对隐私信息编码，防止爬虫骚扰。
+            let base_names = ['mobile', 'wechat', 'email'];
+
+            /**
+             * 对文档中 $class_name{text} 内容替换为 <span class="{class_name}">{text}</span>
+             * @param {string} Markdown 原文
+             * return {string} 替换后的内容
+             */
+            function replaceClassMark(md_text) {
+                md_text = md_text.replace(/[\$\@]([a-z\-]+){([^}]+)?}/g, function (full, class_name, match_text) {
+                    try {
+                        match_text = base_names.indexOf(class_name) >= 0 ? atob(match_text) : match_text;
+                    } catch (error) { }
+
+                    // 分割 tag
+                    if (class_name == 'split-tag') {
+                        let tags = [];
+                        match_text.split(',').forEach(tag_name => {
+                            tags.push('<span>' + tag_name.trim() + '</span>')
+                        });
+                        match_text = tags.join('');
+                    }
+
+                    return '<span class="' + class_name + '">' + match_text + '</span>';
+                });
+
+                // 页脚 分页
+                let page_index = 0;
+                md_text = md_text.replace(/^[\-]{4,}$/mg, function () {
+                    return document.getElementById('tpl-page-number').innerHTML.trim().replace('{page}', ++page_index)
+                }).replace(/{total}/g, page_index);
+
+                return md_text;
+            }
+
+            // 远程加载 Markdown 文档回来处理
+            let md_file = location.hash.substr(1) || './resume.md'
+            axios.get(md_file || './resume.md').then(function (response) {
+                let last_date = new Date(response.headers['last-modified']),
+                    last_time = last_date.getFullYear();
+                last_time += '.' + (last_date.getMonth() + 1);
+                last_time += '.' + last_date.getDate();
+
+                // 特殊加样式的情况
+                let md_str = response.data.replace('-last-time-', last_time);
+                md_str = replaceClassMark(md_str);
+
+                document.getElementById('content').innerHTML = marked(md_str);
+            }).catch(function (error) {
+                console.log(error);
+            });
+        })();
+    </script>
+</body>
+
+</html>
